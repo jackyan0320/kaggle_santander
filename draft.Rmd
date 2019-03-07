@@ -1,0 +1,49 @@
+---
+title: "main"
+author: "Jack Yan"
+date: "3/1/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(httr)
+library(tidyverse)
+```
+
+## Data
+
+```{r, eval = F}
+train_data = read_csv("./fulldata/train.csv")
+test_data = read_csv("./fulldata/test.csv")
+dim(train_data)
+dim(test_data)
+train_data = train_data[,-1] 
+train_sub = train_data[1:2000,]
+test_sub = test_data[1:2000,]
+dim(train_sub)
+fit_glm = glm(target ~., family = binomial(link = 'logit'), data = train_sub)
+ test_sub = test_sub %>% modelr::add_predictions(fit_glm)
+ test_sub[,201]
+# test_data %>% modelr::add_predictions(fit_glm)
+test_sub %>% dim
+test_data %>% dim
+fit_glm %>% summary
+```
+
+```{r, eval = F}
+submission = read_csv("./data/sample_submission.csv")
+submission = 
+  submission %>% 
+  mutate(pihat = predict(fit_glm, test_data, type='response')) %>% 
+  mutate(target = if_else(pihat > 0.5, 1, 0)) %>% 
+  select(-pihat)
+write_csv(submission, "./data/submission.csv")
+submission %>% filter(target == 0)
+
+write_csv(train_sub, "./data/train_sub.csv")
+
+write_csv(test_sub, "./data/test_sub.csv")
+
+```
+
